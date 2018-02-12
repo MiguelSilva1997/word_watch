@@ -10473,6 +10473,17 @@ __WEBPACK_IMPORTED_MODULE_0_jquery___default()(document).ready(() => {
 
 __WEBPACK_IMPORTED_MODULE_1_jquery___default()(document).ready(() => {
   __WEBPACK_IMPORTED_MODULE_0__services_wordService__["a" /* default */].getTopWord();
+
+  __WEBPACK_IMPORTED_MODULE_1_jquery___default()('button').on('click', (event) => {
+    __WEBPACK_IMPORTED_MODULE_0__services_wordService__["a" /* default */].sortWords();
+  })
+
+  __WEBPACK_IMPORTED_MODULE_1_jquery___default()('textarea').keypress((event) => {
+    let key = event.keyCode
+    if (key === 13) {
+      __WEBPACK_IMPORTED_MODULE_0__services_wordService__["a" /* default */].sortWords();
+    }
+  })
 })
 
 
@@ -10492,7 +10503,42 @@ class WordService {
   static getTopWord() {
     __WEBPACK_IMPORTED_MODULE_0__request_wordWatchApi__["a" /* default */].getTopWord()
       .then(word => {
-        __WEBPACK_IMPORTED_MODULE_1_jquery___default()("#top_word").append(word)
+        let top = Object.keys(word.word)
+        __WEBPACK_IMPORTED_MODULE_1_jquery___default()("#top-word").append(`${top[0]}`)
+      })
+  }
+
+  static sortWords() {
+    let body = __WEBPACK_IMPORTED_MODULE_1_jquery___default()('textarea').val();
+    let arrayOfWords = body.split(" ")
+    this.countWords(arrayOfWords)
+    __WEBPACK_IMPORTED_MODULE_1_jquery___default()('textarea').val('');
+  }
+
+  static countWords(arrayOfWords) {
+    let counter = {}
+    arrayOfWords.forEach((word) => {
+      if (counter[word.toLowerCase()] === undefined) {
+        counter[word.toLowerCase()] = 1
+      } else {
+        counter[word.toLowerCase()] += 1
+      }
+    })
+    this.insertWords(counter)
+  }
+
+  static insertWords(counter){
+    __WEBPACK_IMPORTED_MODULE_1_jquery___default()(".word-count p").remove();
+    Object.keys(counter).forEach((word) => {
+      this.sendWord(word)
+      __WEBPACK_IMPORTED_MODULE_1_jquery___default()(".word-count").append(`<p style="font-size:${counter[word]}em;">${word}</p>`)
+    })
+  }
+
+  static sendWord(word) {
+    __WEBPACK_IMPORTED_MODULE_0__request_wordWatchApi__["a" /* default */].postWord(word)
+      .then(response => {
+        console.log(response)
       })
   }
 
@@ -10513,7 +10559,15 @@ class WordWatch {
   static getTopWord() {
     return fetch(API + `top_word`)
       .then(response => response.json())
+  }
 
+  static postWord(words) {
+    return fetch(API + `words`, {
+      method: 'POST',
+      headers:
+      { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word: { value: words}})
+    }).then(response => response.json())
   }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = WordWatch;
